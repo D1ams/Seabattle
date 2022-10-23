@@ -32,15 +32,37 @@ class User:
         else:
             other.set_value(x, y)
 
+    def set_ship(self, ship, board):
+        try:
+            x, y = map(int, input("Введите начало координат коробля ").split())
+            direct = input("Куда смотрит ваш корабль?(U=UP, R=RIGHT, L=LEFT, D=DOWN")
+            if not (0 < x < 7) or not (0 < y < 7) or direct != 'U' or direct != 'R' or direct != 'L' or direct != 'D':
+                raise ValueError
+            if direct == 'U' and board.get_value(x, y - (ship.get_len - 1)) != 'O':
+                raise ValueError
+            if direct == 'D' and board.get_value(x, y + (ship.get_len - 1)) != 'O':
+                raise ValueError
+            if direct == 'R' and board.get_value(x + (ship.get_len - 1), y) != 'O':
+                raise ValueError
+            if direct == 'L' and board.get_value(x - (ship.get_len - 1), y) != 'O':
+                raise ValueError
+        except ValueError:
+            print("Невозможные кооридинаты, попробуйте снова!")
+            # self.move(other)
+        else:
+            print("")
+
 
 class Ship:
-    def __init__(self, len, x, y, direct):
+    def __init__(self, len):
         self.len = len
-        self.x = x
-        self.y = y
-        self.direct = direct
+        self.x = None
+        self.y = None
+        self.direct = None
 
-
+    @property
+    def get_len(self):
+        return self.len
 
 
 def main():
