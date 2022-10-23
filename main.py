@@ -7,9 +7,9 @@ class Board:
 
     def __str__(self):
         end = "   | 1 | 2 | 3 | 4 | 5 | 6 |"
-        for num in self.list:
-            end += "\n   | "
-            end += " | ".join(num)
+        for num in enumerate(self.list):
+            end += f"\n {num[0] + 1} | "
+            end += " | ".join(num[1])
             end += ' |'
         return end
 
