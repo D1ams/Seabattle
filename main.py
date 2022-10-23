@@ -34,21 +34,21 @@ class User:
 
     def set_ship(self, ship, board):
         try:
-            x, y = map(int, input("Введите начало координат коробля ").split())
-            direct = input("Куда смотрит ваш корабль?(U=UP, R=RIGHT, L=LEFT, D=DOWN")
-            if not (0 < x < 7) or not (0 < y < 7) or direct != 'U' or direct != 'R' or direct != 'L' or direct != 'D':
+            x, y = map(int, input("Введите начало координат коробля (гор, верт) ").split())
+            direct = input("Куда смотрит ваш корабль? (U=UP, R=RIGHT, L=LEFT, D=DOWN) ")
+            if not (0 < x < 7) or not (0 < y < 7) or not(direct == 'U' or direct == 'R' or direct == 'L' or direct == 'D'):
                 raise ValueError
-            if direct == 'U' and board.get_value(x, y - (ship.get_len - 1)) != 'O':
+            if direct == 'U' and not(0 < y - (ship.get_len - 1) < 7):
                 raise ValueError
-            if direct == 'D' and board.get_value(x, y + (ship.get_len - 1)) != 'O':
+            if direct == 'D' and not(0 < y + (ship.get_len - 1) < 7):
                 raise ValueError
-            if direct == 'R' and board.get_value(x + (ship.get_len - 1), y) != 'O':
+            if direct == 'R' and not(0 < x + (ship.get_len - 1) < 7):
                 raise ValueError
-            if direct == 'L' and board.get_value(x - (ship.get_len - 1), y) != 'O':
+            if direct == 'L' and not(0 < x - (ship.get_len - 1) < 7):
                 raise ValueError
         except ValueError:
             print("Невозможные кооридинаты, попробуйте снова!")
-            # self.move(other)
+            self.set_ship(ship, board)
         else:
             print("")
 
@@ -69,8 +69,8 @@ def main():
     board_1 = Board()
     user = User()
     print(board_1)
-    user.move(board_1)
-    print(board_1)
+    ship_1 = Ship(3)
+    user.set_ship(ship_1, board_1)
 
 
 if __name__ == '__main__':
