@@ -27,8 +27,16 @@ class Board:
         else:
             self.list[y - 1][x - 1] = 'X'
 
-    def set_ship(self, x, y):
-        self.list[y - 1][x - 1] = '█'
+    def set_ship(self, ship):
+        if ship.direct_get == 'U' or ship.direct_get == 'D':
+            for num in ship.coord_get:
+                self.list[num - 1][ship.x_get - 1]
+        for num in ship.coord_get:
+            self.list[ship.y_get - 1][ship.x_get - 1] = '█'
+
+
+    # def set_ship(self, x, y):
+    #     self.list[y - 1][x - 1] = '█'
 
     @property
     def get_width(self):
@@ -51,30 +59,66 @@ class User:
         else:
             board.set_value(x, y)
 
-    def set_ship_user(self, ship, board):
+    @staticmethod
+    def set_ship_user(ship, board):
+        ship.set_ship(board)
+
+
+class Ship:
+    def __init__(self, len):
+        self.x = None
+        self.y = None
+        self.direct = None
+        self.len = len
+        self.coord = None
+
+    @property
+    def get_len(self):
+        return self.len
+
+    @property
+    def x_get(self):
+        return self.x
+
+
+    @property
+    def y_get(self):
+        return self.y
+
+    @property
+    def direct_get(self):
+        return self.direct
+
+    @property
+    def coord_get(self):
+        return self.cord
+
+
+
+    def set_ship(self, board):
         try:
             x, y = map(int, input("Введите начало координат коробля (гор, верт) ").split())
             direct = 'U'
             if not (0 < x < board.get_width + 1) or not (0 < y < board.get_height + 1):
                 raise ValueError
-            if ship.get_len != 1:
+            if self.len != 1:
                 direct = input("Куда смотрит ваш корабль? (U=UP, R=RIGHT, L=LEFT, D=DOWN) ")
             if not (direct == 'U' or direct == 'R' or direct == 'L' or direct == 'D'):
                 raise ValueError
-            if ship.len != 1:
-                if direct == 'U' and not (0 < y - (ship.get_len - 1) < board.get_height + 1):
+            if self.len != 1:
+                if direct == 'U' and not (0 < y - (self.len - 1) < board.get_height + 1):
                     raise ValueError
-                if direct == 'D' and not (0 < y + (ship.get_len - 1) < board.get_height + 1):
+                if direct == 'D' and not (0 < y + (self.len - 1) < board.get_height + 1):
                     raise ValueError
-                if direct == 'R' and not (0 < x + (ship.get_len - 1) < board.get_width + 1):
+                if direct == 'R' and not (0 < x + (self.len - 1) < board.get_width + 1):
                     raise ValueError
-                if direct == 'L' and not (0 < x - (ship.get_len - 1) < board.get_width + 1):
+                if direct == 'L' and not (0 < x - (self.len - 1) < board.get_width + 1):
                     raise ValueError
             if direct == 'U' or direct == 'D':
                 if direct == 'U':
-                    y_list = [i for i in range(y - (ship.get_len - 1), y + 1)]
+                    y_list = [i for i in range(y - (self.get_len - 1), y + 1)]
                 else:
-                    y_list = [i for i in range(y, y + ship.get_len)]
+                    y_list = [i for i in range(y, y + self.get_len)]
                 y_list_check = y_list.copy()
                 if y_list[0] != 1:
                     y_list_check.insert(0, y_list[0] - 1)
@@ -94,9 +138,9 @@ class User:
                             raise ValueError
             else:
                 if direct == 'L':
-                    x_list = [i for i in range(x - (ship.get_len - 1), x + 1)]
+                    x_list = [i for i in range(x - (self.get_len - 1), x + 1)]
                 else:
-                    x_list = [i for i in range(x, x + ship.get_len)]
+                    x_list = [i for i in range(x, x + self.get_len)]
                 x_list_check = x_list.copy()
                 if x_list[0] != 1:
                     x_list_check.insert(0, x_list[0] - 1)
@@ -114,32 +158,22 @@ class User:
                     else:
                         if board.get_value(num, y - 1) == '█' or board.get_value(num, y + 1) == '█':
                             raise ValueError
-
         except ValueError:
             print("Невозможные кооридинаты, попробуйте снова!")
-            self.set_ship_user(ship, board)
+            self.set_ship(board)
 
         else:
-            if direct == 'U' or direct == 'D':
-                for num in y_list:
-                    board.set_ship(x, num)
+            self.x = x
+            self.y = y
+            self.direct = direct
+            if self.direct == 'U' or self.direct == 'D':
+                self.coord = y_list
+                # for num in y_list:
+                #     board.set_ship(x, num)
             else:
-                for num in x_list:
-                    board.set_ship(num, y)
-
-
-class Ship:
-    def __init__(self, len):
-        self.x = None
-        self.y = None
-        self.direct = None
-        self.len = len
-
-    @property
-    def get_len(self):
-        return self.len
-
-    def set_ship(self, board):
+                self.coord = x_list
+                # for num in x_list:
+                #     board.set_ship(num, y)
 
 
 def main():
@@ -154,7 +188,7 @@ def main():
     # for num in ship:
     #     user.set_ship_user(num, board_1)
     #     print(board_1)
-    ship = Ship(2)
+    ship = Ship(3)
     user.set_ship_user(ship, board_1)
     print(board_1)
     user.move(board_1)
