@@ -1,8 +1,26 @@
+import random
+
+
 class Board:
     def __init__(self):
         self.width = 6
         self.height = 6
         self.list = [['O' for i in range(self.width)] for j in range(self.height)]
+        self.alive = None
+
+    @property
+    def get_alive(self):
+        return self.alive
+
+    def check_alive(self):
+        self.alive = False
+        for num in self.list:
+            for j in num:
+                if j == '█':
+                    self.alive = True
+                    break
+            if self.alive:
+                break
 
     def __str__(self):
         end = "   | 1 | "
@@ -59,6 +77,18 @@ class User:
     @staticmethod
     def set_ship_user(ship, board):
         ship.set_ship(board)
+
+
+class AI(User):
+    def move(self, board):
+        try:
+            x, y = random.randint(1, board.get_width), random.randint(1, board.get_height)
+            if board.get_value(x, y) == "T":
+                raise ValueError
+        except ValueError:
+            self.move(board)
+        else:
+            board.set_value(x, y)
 
 
 class Ship:
