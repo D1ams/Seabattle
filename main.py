@@ -8,20 +8,6 @@ class Board:
         self.list = [['O' for i in range(self.width)] for j in range(self.height)]
         self.alive = None
 
-    @property
-    def get_alive(self):
-        return self.alive
-
-    def check_alive(self):
-        self.alive = False
-        for num in self.list:
-            for j in num:
-                if j == '█':
-                    self.alive = True
-                    break
-            if self.alive:
-                break
-
     def __str__(self):
         end = "   | 1 | "
         str_ = []
@@ -36,14 +22,15 @@ class Board:
         end += "\n"
         return end
 
-    def get_value(self, x, y):
-        return self.list[y - 1][x - 1]
-
-    def set_value(self, x, y):
-        if self.get_value(x, y) == 'O':
-            self.list[y - 1][x - 1] = 'T'
-        else:
-            self.list[y - 1][x - 1] = 'X'
+    def check_alive(self):
+        self.alive = False
+        for num in self.list:
+            for j in num:
+                if j == '█':
+                    self.alive = True
+                    break
+            if self.alive:
+                break
 
     def set_ship(self, ship):
         if ship.direct_get == 'U' or ship.direct_get == 'D':
@@ -53,16 +40,42 @@ class Board:
             for num in ship.coord_get:
                 self.list[ship.y_get - 1][num - 1] = '█'
 
+    def set_value(self, x, y):
+        if self.get_value(x, y) == 'O':
+            self.list[y - 1][x - 1] = 'T'
+        else:
+            self.list[y - 1][x - 1] = 'X'
+
+    def get_value(self, x, y):
+        return self.list[y - 1][x - 1]
+
+    @property
+    def get_alive(self):
+        return self.alive
+
     @property
     def get_width(self):
         return self.width
+
+    @get_width.setter
+    def get_width(self, value):
+        self.get_width = value
 
     @property
     def get_height(self):
         return self.height
 
+    @get_height.setter
+    def get_height(self, value):
+        self.get_height = value
+
 
 class User:
+    def __init__(self):
+        self.x_user = None
+        self.y_user = None
+        self.direct_user = None
+
     def move(self, board):
         try:
             x, y = map(int, input("Введите координаты выстрела (гор, верт) ").split())
@@ -74,9 +87,36 @@ class User:
         else:
             board.set_value(x, y)
 
-    @staticmethod
-    def set_ship_user(ship, board):
-        ship.set_ship(board)
+    def set_ship_user(self, ship, board):
+        try:
+            x, y = map(int, input("Введите начало координат коробля (гор, верт) ").split())
+            direct = 'U'
+            if not (0 < x < board.get_width + 1) or not (0 < y < board.get_height + 1):
+                raise ValueError
+            if ship.get_len != 1:
+                direct = input("Куда смотрит ваш корабль? (U=UP, R=RIGHT, L=LEFT, D=DOWN) ")
+            if not (direct == 'U' or direct == 'R' or direct == 'L' or direct == 'D'):
+                raise ValueError
+        except ValueError:
+            print("Невозможные кооридинаты, попробуйте снова!")
+            self.set_ship_user(ship, board)
+        else:
+            self.x_user = x
+            self.y_user = y
+            self.direct_user = direct
+            ship.set_ship(self, board)
+
+    @property
+    def get_x_user(self):
+        return self.x_user
+
+    @property
+    def get_y_user(self):
+        return self.y_user
+
+    @property
+    def get_direct_user(self):
+        return self.direct_user
 
 
 class AI(User):
@@ -90,6 +130,16 @@ class AI(User):
         else:
             board.set_value(x, y)
 
+    def set_ship_user(self, ship, board):
+        x, y = random.randint(1, board.get_width), random.randint(1, board.get_height)
+        directs = ['U', 'D', 'R', 'L']
+        c = random.randint(0, 3)
+        direct = directs[c]
+        self.x_user = x
+        self.y_user = y
+        self.direct_user = direct
+        ship.set_ship(self, board)
+
 
 class Ship:
     def __init__(self, len):
@@ -99,36 +149,10 @@ class Ship:
         self.len = len
         self.coord = None
 
-    @property
-    def get_len(self):
-        return self.len
-
-    @property
-    def x_get(self):
-        return self.x
-
-    @property
-    def y_get(self):
-        return self.y
-
-    @property
-    def direct_get(self):
-        return self.direct
-
-    @property
-    def coord_get(self):
-        return self.coord
-
-    def set_ship(self, board):
+    def set_ship(self, user, board):
         try:
-            x, y = map(int, input("Введите начало координат коробля (гор, верт) ").split())
-            direct = 'U'
-            if not (0 < x < board.get_width + 1) or not (0 < y < board.get_height + 1):
-                raise ValueError
-            if self.len != 1:
-                direct = input("Куда смотрит ваш корабль? (U=UP, R=RIGHT, L=LEFT, D=DOWN) ")
-            if not (direct == 'U' or direct == 'R' or direct == 'L' or direct == 'D'):
-                raise ValueError
+            x, y = user.get_x_user, user.get_y_user
+            direct = user.get_direct_user
             if self.len != 1:
                 if direct == 'U' and not (0 < y - (self.len - 1) < board.get_height + 1):
                     raise ValueError
@@ -183,8 +207,9 @@ class Ship:
                         if board.get_value(num, y - 1) == '█' or board.get_value(num, y + 1) == '█':
                             raise ValueError
         except ValueError:
-            print("Невозможные кооридинаты, попробуйте снова!")
-            self.set_ship(board)
+            if not isinstance(user, AI):
+                print("Невозможные кооридинаты, попробуйте снова!")
+            user.set_ship_user(self, board)
 
         else:
             self.x = x
@@ -196,24 +221,29 @@ class Ship:
                 self.coord = x_list
             board.set_ship(self)
 
+    @property
+    def get_len(self):
+        return self.len
+
+    @property
+    def x_get(self):
+        return self.x
+
+    @property
+    def y_get(self):
+        return self.y
+
+    @property
+    def direct_get(self):
+        return self.direct
+
+    @property
+    def coord_get(self):
+        return self.coord
+
 
 def main():
-    board_1 = Board()
-    user = User()
-    print(board_1)
-    # user.move(board_1)
-    # user.move(board_1)
-    # user.move(board_1)
-    # print(board_1)
-    ship = [Ship(i) for i in range(4, 0, -1)]
-    for num in ship:
-        user.set_ship_user(num, board_1)
-        print(board_1)
-    # ship = Ship(3)
-    # user.set_ship_user(ship, board_1)
-    # print(board_1)
-    # user.move(board_1)
-    # print(board_1)
+    pass
 
 
 if __name__ == '__main__':
