@@ -30,13 +30,10 @@ class Board:
     def set_ship(self, ship):
         if ship.direct_get == 'U' or ship.direct_get == 'D':
             for num in ship.coord_get:
-                self.list[num - 1][ship.x_get - 1]
-        for num in ship.coord_get:
-            self.list[ship.y_get - 1][ship.x_get - 1] = '█'
-
-
-    # def set_ship(self, x, y):
-    #     self.list[y - 1][x - 1] = '█'
+                self.list[num - 1][ship.x_get - 1] = '█'
+        else:
+            for num in ship.coord_get:
+                self.list[ship.y_get - 1][num - 1] = '█'
 
     @property
     def get_width(self):
@@ -80,7 +77,6 @@ class Ship:
     def x_get(self):
         return self.x
 
-
     @property
     def y_get(self):
         return self.y
@@ -91,9 +87,7 @@ class Ship:
 
     @property
     def coord_get(self):
-        return self.cord
-
-
+        return self.coord
 
     def set_ship(self, board):
         try:
@@ -168,12 +162,9 @@ class Ship:
             self.direct = direct
             if self.direct == 'U' or self.direct == 'D':
                 self.coord = y_list
-                # for num in y_list:
-                #     board.set_ship(x, num)
             else:
                 self.coord = x_list
-                # for num in x_list:
-                #     board.set_ship(num, y)
+            board.set_ship(self)
 
 
 def main():
@@ -184,15 +175,15 @@ def main():
     # user.move(board_1)
     # user.move(board_1)
     # print(board_1)
-    # ship = [Ship(i) for i in range(4, 0, -1)]
-    # for num in ship:
-    #     user.set_ship_user(num, board_1)
-    #     print(board_1)
-    ship = Ship(3)
-    user.set_ship_user(ship, board_1)
-    print(board_1)
-    user.move(board_1)
-    print(board_1)
+    ship = [Ship(i) for i in range(4, 0, -1)]
+    for num in ship:
+        user.set_ship_user(num, board_1)
+        print(board_1)
+    # ship = Ship(3)
+    # user.set_ship_user(ship, board_1)
+    # print(board_1)
+    # user.move(board_1)
+    # print(board_1)
 
 
 if __name__ == '__main__':
