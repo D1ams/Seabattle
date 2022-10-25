@@ -356,11 +356,11 @@ def main():
         board_2_user = Board(board_1_user.get_width, board_1_user.get_height)
         board_3_AI = Board(board_1_user.get_width, board_1_user.get_height)
         ship_len3_user = [Ship(3)]
-        # ship_len2_user = [Ship(2) for _ in range(2)]
-        # ship_len1_user = [Ship(1) for _ in range(4)]
+        ship_len2_user = [Ship(2) for _ in range(2)]
+        ship_len1_user = [Ship(1) for _ in range(4)]
         ships_user = []
-        # ships_user.extend(ship_len1_user)
-        # ships_user.extend(ship_len2_user)
+        ships_user.extend(ship_len1_user)
+        ships_user.extend(ship_len2_user)
         ships_user.extend(ship_len3_user)
         ship_len3_computer = [Ship(3)]
         ship_len2_computer = [Ship(2) for _ in range(2)]
