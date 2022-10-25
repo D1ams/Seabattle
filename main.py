@@ -48,10 +48,62 @@ class Board:
         self.list[user.get_y_user - 1][user.get_x_user - 1] = board.get_value(user.get_x_user, user.get_y_user)
 
     def set_value(self, x, y):
-        if self.get_value(x, y) == 'O':
+        if self.get_value(x, y) == 'O' or self.get_value(x, y) == '□':
             self.list[y - 1][x - 1] = 'T'
         else:
             self.list[y - 1][x - 1] = 'X'
+
+    def set_blank(self, x, y):
+        self.list[y - 1][x - 1] = '□'
+
+    def copy_blanks(self, board):
+        for i, v in enumerate(board.list):
+            for j, k in enumerate(v):
+                if k == '□':
+                    self.set_blank(j + 1, i + 1)
+
+    def ship_check_alive(self, ship):
+        ship_alive = False
+        if ship.ship_alive_get:
+            if ship.direct_get == 'U' or ship.direct_get == 'D':
+                for num in ship.coord_get:
+                    if self.list[num - 1][ship.x_get - 1] == '█':
+                        ship_alive = True
+                        break
+            else:
+                for num in ship.coord_get:
+                    if self.list[ship.y_get - 1][num - 1] == '█':
+                        ship_alive = True
+                        break
+
+        if (not ship_alive) and ship.ship_alive_get:
+            ship.ship_alive_get = ship_alive
+            if ship.direct_get == 'U' or ship.direct_get == 'D':
+                for num in ship.coord_check_get:
+                    if num == ship.coord_check_get[0] and ship.coord_check_get[0] != ship.coord_get[0]:
+                        self.set_blank(ship.x_get, num)
+                    if num == ship.coord_check_get[-1] and ship.coord_check_get[-1] != ship.coord_get[-1]:
+                        self.set_blank(ship.x_get, num)
+                    if ship.x_get == 1:
+                        self.set_blank(ship.x_get + 1, num)
+                    elif ship.x_get == self.get_width:
+                        self.set_blank(ship.x_get - 1, num)
+                    else:
+                        self.set_blank(ship.x_get - 1, num)
+                        self.set_blank(ship.x_get + 1, num)
+            else:
+                for num in ship.coord_check_get:
+                    if num == ship.coord_check_get[0] and ship.coord_check_get[0] != ship.coord_get[0]:
+                        self.set_blank(num, ship.y_get)
+                    if num == ship.coord_check_get[-1] and ship.coord_check_get[-1] != ship.coord_get[-1]:
+                        self.set_blank(num, ship.y_get)
+                    if ship.y_get == 1:
+                        self.set_blank(num, ship.y_get + 1)
+                    elif ship.y_get == self.get_height:
+                        self.set_blank(num, ship.y_get - 1)
+                    else:
+                        self.set_blank(num, ship.y_get - 1)
+                        self.set_blank(num, ship.y_get + 1)
 
     def get_value(self, x, y):
         return self.list[y - 1][x - 1]
@@ -92,7 +144,9 @@ class User:
     def move(self, board):
         try:
             x, y = map(int, input("Введите координаты выстрела (гор, верт) ").split())
-            if not (0 < x < board.get_width + 1) or not (0 < y < board.get_height + 1) or board.get_value(x, y) == "T" or board.get_value(x, y) == "X":
+            if not (0 < x < board.get_width + 1) or not (0 < y < board.get_height + 1) or board.get_value(x,
+                                                                                                             y) == "T" or board.get_value(
+                    x, y) == "X" or board.get_value(x, y) == '□':
                 raise ValueError
         except ValueError:
             print("Невозможные кооридинаты, попробуйте снова!")
@@ -135,13 +189,12 @@ class User:
 
 
 class AI(User):
-
     board_filled = None
 
     def move(self, board):
         try:
             x, y = random.randint(1, board.get_width), random.randint(1, board.get_height)
-            if board.get_value(x, y) == "T" or board.get_value(x, y) == "X":
+            if board.get_value(x, y) == "T" or board.get_value(x, y) == "X" or board.get_value(x, y) == "□":
                 raise ValueError
         except ValueError:
             self.move(board)
@@ -178,6 +231,8 @@ class Ship:
         self.direct = None
         self.len = len
         self.coord = None
+        self.coord_check = None
+        self.ship_alive = True
 
     def set_ship(self, user, board):
         try:
@@ -247,8 +302,10 @@ class Ship:
             self.direct = direct
             if self.direct == 'U' or self.direct == 'D':
                 self.coord = y_list
+                self.coord_check = y_list_check
             else:
                 self.coord = x_list
+                self.coord_check = x_list_check
             board.set_ship(self)
 
     @property
@@ -258,6 +315,14 @@ class Ship:
     @property
     def x_get(self):
         return self.x
+
+    @property
+    def ship_alive_get(self):
+        return self.ship_alive
+
+    @ship_alive_get.setter
+    def ship_alive_get(self, value):
+        self.ship_alive = value
 
     @property
     def y_get(self):
@@ -270,6 +335,10 @@ class Ship:
     @property
     def coord_get(self):
         return self.coord
+
+    @property
+    def coord_check_get(self):
+        return self.coord_check
 
 
 def main():
@@ -320,9 +389,15 @@ def main():
             user.move(board_3_AI)
             board_2_user.copy_value(board_3_AI, user)
             computer.move(board_1_user)
+            for num in ships_user:
+                board_1_user.ship_check_alive(num)
+            for num in ships_computer:
+                board_3_AI.ship_check_alive(num)
+            board_2_user.copy_blanks(board_3_AI)
             print("Ваша доска ( T - промахи, X - попадания, █ - корабль) и Доска ваших выстрелов ")
             print(board_1_user)
             print(board_2_user)
+            print(board_3_AI)
             if not (board_1_user.check_alive() and board_3_AI.check_alive()):
                 if board_1_user.check_alive():
                     print("Пользователь победил!")
@@ -333,8 +408,6 @@ def main():
                 else:
                     print("Ничья!")
                 break
-
-
 
 
 if __name__ == '__main__':
