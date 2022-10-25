@@ -397,7 +397,6 @@ def main():
             print("Ваша доска ( T - промахи, X - попадания, █ - корабль) и Доска ваших выстрелов ")
             print(board_1_user)
             print(board_2_user)
-            print(board_3_AI)
             if not (board_1_user.check_alive() and board_3_AI.check_alive()):
                 if board_1_user.check_alive():
                     print("Пользователь победил!")
