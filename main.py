@@ -2,11 +2,14 @@ import random
 
 
 class Board:
-    def __init__(self):
-        self.width = 6
-        self.height = 6
-        self.list = [['O' for i in range(self.width)] for j in range(self.height)]
+    def __init__(self, width=6, height=6):
+        self.width = width
+        self.height = height
+        self.list = [['O' for _ in range(self.width)] for _ in range(self.height)]
         self.alive = None
+
+    def create_list(self):
+        self.list = [['O' for _ in range(self.width)] for _ in range(self.height)]
 
     def __str__(self):
         end = "   | 1 | "
@@ -31,6 +34,7 @@ class Board:
                     break
             if self.alive:
                 break
+        return self.alive
 
     def set_ship(self, ship):
         if ship.direct_get == 'U' or ship.direct_get == 'D':
@@ -39,6 +43,9 @@ class Board:
         else:
             for num in ship.coord_get:
                 self.list[ship.y_get - 1][num - 1] = '█'
+
+    def copy_value(self, board, user):
+        self.list[user.get_y_user - 1][user.get_x_user - 1] = board.get_value(user.get_x_user, user.get_y_user)
 
     def set_value(self, x, y):
         if self.get_value(x, y) == 'O':
@@ -59,7 +66,10 @@ class Board:
 
     @get_width.setter
     def get_width(self, value):
-        self.get_width = value
+        if 5 < value < 10:
+            self.width = value
+        else:
+            print("Такой ширины не может быть! Ширина будет равна 6")
 
     @property
     def get_height(self):
@@ -67,7 +77,10 @@ class Board:
 
     @get_height.setter
     def get_height(self, value):
-        self.get_height = value
+        if 5 < value < 10:
+            self.height = value
+        else:
+            print("Такой высоты не может быть! Высота будет равна 6")
 
 
 class User:
@@ -79,13 +92,15 @@ class User:
     def move(self, board):
         try:
             x, y = map(int, input("Введите координаты выстрела (гор, верт) ").split())
-            if not (0 < x < board.get_width + 1) or not (0 < y < board.get_height + 1) or board.get_value(x, y) == "T":
+            if not (0 < x < board.get_width + 1) or not (0 < y < board.get_height + 1) or board.get_value(x, y) == "T" or board.get_value(x, y) == "X":
                 raise ValueError
         except ValueError:
             print("Невозможные кооридинаты, попробуйте снова!")
             self.move(board)
         else:
-            board.set_value(x, y)
+            self.x_user = x
+            self.y_user = y
+            board.set_value(self.x_user, self.y_user)
 
     def set_ship_user(self, ship, board):
         try:
@@ -120,10 +135,13 @@ class User:
 
 
 class AI(User):
+
+    board_filled = None
+
     def move(self, board):
         try:
             x, y = random.randint(1, board.get_width), random.randint(1, board.get_height)
-            if board.get_value(x, y) == "T":
+            if board.get_value(x, y) == "T" or board.get_value(x, y) == "X":
                 raise ValueError
         except ValueError:
             self.move(board)
@@ -138,7 +156,19 @@ class AI(User):
         self.x_user = x
         self.y_user = y
         self.direct_user = direct
-        ship.set_ship(self, board)
+        try:
+            ship.set_ship(self, board)
+        except RecursionError:
+            board.create_list()
+            self.board_filled = False
+
+    @property
+    def get_board_filled(self):
+        return self.board_filled
+
+    @get_board_filled.setter
+    def get_board_filled(self, value):
+        self.board_filled = value
 
 
 class Ship:
@@ -243,7 +273,68 @@ class Ship:
 
 
 def main():
-    pass
+    try:
+        x, y = map(int, input("Введите размер доски (гор, верт) от 6 до 9 ").split())
+    except ValueError:
+        print('Такой доски не может быть!')
+    else:
+        user = User()
+        computer = AI()
+        board_1_user = Board()
+        board_1_user.get_width = x
+        board_1_user.get_height = y
+        board_1_user.create_list()
+        board_2_user = Board(board_1_user.get_width, board_1_user.get_height)
+        board_3_AI = Board(board_1_user.get_width, board_1_user.get_height)
+        ship_len3_user = [Ship(3)]
+        # ship_len2_user = [Ship(2) for _ in range(2)]
+        # ship_len1_user = [Ship(1) for _ in range(4)]
+        ships_user = []
+        # ships_user.extend(ship_len1_user)
+        # ships_user.extend(ship_len2_user)
+        ships_user.extend(ship_len3_user)
+        ship_len3_computer = [Ship(3)]
+        ship_len2_computer = [Ship(2) for _ in range(2)]
+        ship_len1_computer = [Ship(1) for _ in range(4)]
+        ships_computer = []
+        ships_computer.extend(ship_len3_computer)
+        ships_computer.extend(ship_len2_computer)
+        ships_computer.extend(ship_len1_computer)
+        print(board_1_user)
+        for num in ships_user:
+            print(f'Корабль длинной в {num.get_len} ')
+            user.set_ship_user(num, board_1_user)
+            print(board_1_user)
+        while True:
+            computer.get_board_filled = None
+            for num in ships_computer:
+                computer.set_ship_user(num, board_3_AI)
+                if computer.get_board_filled is False:
+                    break
+            if computer.get_board_filled is None:
+                break
+        print("Ваша доска ( T - промахи, X - попадания, █ - корабль) и Доска ваших выстрелов ")
+        print(board_1_user)
+        print(board_2_user)
+        while True:
+            user.move(board_3_AI)
+            board_2_user.copy_value(board_3_AI, user)
+            computer.move(board_1_user)
+            print("Ваша доска ( T - промахи, X - попадания, █ - корабль) и Доска ваших выстрелов ")
+            print(board_1_user)
+            print(board_2_user)
+            if not (board_1_user.check_alive() and board_3_AI.check_alive()):
+                if board_1_user.check_alive():
+                    print("Пользователь победил!")
+                elif board_3_AI.check_alive():
+                    print("Доска комьютера ")
+                    print(board_3_AI)
+                    print("Компьютер победил!")
+                else:
+                    print("Ничья!")
+                break
+
+
 
 
 if __name__ == '__main__':
