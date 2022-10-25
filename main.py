@@ -12,7 +12,7 @@ class Board:
         self.list = [['O' for _ in range(self.width)] for _ in range(self.height)]
 
     def __str__(self):
-        end = "   | 1 | " #erwt
+        end = "   | 1 | "
         str_ = []
         for num in range(2, self.width + 1):
             str_.append(str(num))
